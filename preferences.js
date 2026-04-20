@@ -20,7 +20,6 @@ var ZoteroTodoistBridgePrefs = {
 
   init() {
     if (this.initialized) {
-      this.load();
       return;
     }
     this.tokenInput = document.getElementById("ztb-token");
@@ -144,12 +143,4 @@ var ZoteroTodoistBridgePrefs = {
 
 if (typeof window !== "undefined") {
   window.ZoteroTodoistBridgePrefs = ZoteroTodoistBridgePrefs;
-  if (!window.__ztbPrefsShowingHookInstalled) {
-    window.__ztbPrefsShowingHookInstalled = true;
-    document.addEventListener("showing", (event) => {
-      if (event.target && event.target.id === "zotero-prefpane-todoist-bridge") {
-        window.ZoteroTodoistBridgePrefs.init();
-      }
-    });
-  }
 }
