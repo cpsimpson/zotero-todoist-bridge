@@ -1,0 +1,56 @@
+name: Release Zotero Plugin
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Build release artifacts
+        id: build
+        run: |
+          set -euo pipefail
+          ./scripts/build-release-artifacts.sh | tee /tmp/release-meta.txt
+          VERSION="$(grep '^version=' /tmp/release-meta.txt | cut -d= -f2)"
+          TAG="$(grep '^tag=' /tmp/release-meta.txt | cut -d= -f2)"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Check whether release tag already exists
+        id: tag_check
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.build.outputs.tag }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "Tag ${TAG} already exists; skipping publish."
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish GitHub release
+        if: steps.tag_check.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.build.outputs.tag }}
+          name: ${{ steps.build.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          make_latest: true
+          generate_release_notes: true
+          overwrite_files: true
+          files: |
+            dist/*.xpi
+            dist/updates.json
+          fail_on_unmatched_files: true
