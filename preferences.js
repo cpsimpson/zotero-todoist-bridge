@@ -1,7 +1,7 @@
-const ZTB_PREF_TOKEN = "extensions.zotero-todoist-bridge.todoistToken";
-const ZTB_PREF_TEMPLATES = "extensions.zotero-todoist-bridge.templates";
+var ZTB_PREF_TOKEN = "extensions.zotero-todoist-bridge.todoistToken";
+var ZTB_PREF_TEMPLATES = "extensions.zotero-todoist-bridge.templates";
 
-const ZTB_DEFAULT_TEMPLATES = [
+var ZTB_DEFAULT_TEMPLATES = [
   {
     name: "Add to Reading Queue",
     text: "Read {{title}} {{url}} #Reading",
@@ -16,17 +16,30 @@ var ZoteroTodoistBridgePrefs = {
   tokenInput: null,
   templatesInput: null,
   statusLabel: null,
+  initialized: false,
 
   init() {
+    if (this.initialized) {
+      return;
+    }
     this.tokenInput = document.getElementById("ztb-token");
     this.templatesInput = document.getElementById("ztb-templates");
     this.statusLabel = document.getElementById("ztb-status");
-    document.getElementById("ztb-save").addEventListener("command", () => this.save());
-    document.getElementById("ztb-reset").addEventListener("command", () => this.resetToDefaults());
+    let saveButton = document.getElementById("ztb-save");
+    let resetButton = document.getElementById("ztb-reset");
+    if (!this.tokenInput || !this.templatesInput || !this.statusLabel || !saveButton || !resetButton) {
+      return;
+    }
+    saveButton.addEventListener("command", () => this.save());
+    resetButton.addEventListener("command", () => this.resetToDefaults());
+    this.initialized = true;
     this.load();
   },
 
   load() {
+    if (!this.initialized) {
+      return;
+    }
     this.tokenInput.value = Zotero.Prefs.get(ZTB_PREF_TOKEN, true) || "";
     let rawTemplates = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true);
     if (typeof rawTemplates !== "string" || !rawTemplates.trim()) {
@@ -44,13 +57,13 @@ var ZoteroTodoistBridgePrefs = {
   },
 
   save() {
+    Zotero.Prefs.set(ZTB_PREF_TOKEN, this.tokenInput.value.trim(), true);
     try {
       const { templates, error } = this.parseTemplateConfigs(this.templatesInput.value || "");
       if (error) {
         throw new Error(error);
       }
       const normalized = JSON.stringify(templates, null, 2);
-      Zotero.Prefs.set(ZTB_PREF_TOKEN, this.tokenInput.value.trim(), true);
       Zotero.Prefs.set(ZTB_PREF_TEMPLATES, normalized, true);
       this.templatesInput.value = normalized;
       this.setStatus("Saved");
@@ -87,6 +100,9 @@ var ZoteroTodoistBridgePrefs = {
   },
 
   parseTemplateConfigs(raw) {
+    if (typeof raw !== "string") {
+      return { templates: [], error: "Template config must be text." };
+    }
     if (!raw.trim()) {
       return { templates: [], error: "Template config must not be empty." };
     }
@@ -117,6 +133,9 @@ var ZoteroTodoistBridgePrefs = {
   },
 
   setStatus(message, isError) {
+    if (!this.statusLabel) {
+      return;
+    }
     this.statusLabel.value = message;
     this.statusLabel.style.color = isError ? "#cc3333" : "";
   },
