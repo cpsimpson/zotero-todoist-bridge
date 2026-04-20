@@ -6,11 +6,11 @@ const TODOIST_QUICK_ADD_URL = "https://api.todoist.com/api/v1/tasks/quick";
 
 const ZTB_DEFAULT_TEMPLATES = [
   {
-    name: "Example: Reading Queue",
+    name: "Add to Reading Queue",
     text: "Read {{title}} {{url}} #Reading",
   },
   {
-    name: "Example: Review Tomorrow",
+    name: "Review Tomorrow",
     text: "Review {{title}} {{url}} tomorrow #Reading p2",
   },
 ];
