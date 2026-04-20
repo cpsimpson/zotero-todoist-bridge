@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+VERSION="$(sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' manifest.json | head -n 1)"
+OUTPUT="zotero-todoist-bridge-${VERSION}.xpi"
+
+rm -f "${OUTPUT}"
+zip -r "${OUTPUT}" \
+  manifest.json \
+  bootstrap.js \
+  zotero-todoist-bridge.js \
+  preferences.xhtml \
+  preferences.js \
+  locale
+
+echo "Built ${OUTPUT}"
