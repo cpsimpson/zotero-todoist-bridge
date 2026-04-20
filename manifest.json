@@ -1,0 +1,14 @@
+{
+  "manifest_version": 2,
+  "name": "Zotero Todoist Bridge",
+  "version": "0.1.0",
+  "description": "Send selected Zotero papers to Todoist with configurable quick-add templates.",
+  "homepage_url": "https://github.com/cpsimpson/zotero-todoist-bridge",
+  "applications": {
+    "zotero": {
+      "id": "zotero-todoist-bridge@cpsimpson.dev",
+      "strict_min_version": "9.0",
+      "strict_max_version": "9.*"
+    }
+  }
+}

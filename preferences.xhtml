@@ -1,0 +1,53 @@
+<vbox
+  id="zotero-prefpane-todoist-bridge"
+  xmlns:html="http://www.w3.org/1999/xhtml"
+  onload="ZoteroTodoistBridgePrefs.init()"
+>
+  <vbox class="main-section">
+    <groupbox>
+      <label>
+        <html:h2>Todoist Connection</html:h2>
+      </label>
+      <label value="Personal API token" />
+      <html:input
+        id="ztb-token"
+        type="password"
+        style="width: 100%; box-sizing: border-box;"
+      />
+      <description>
+        Create a Todoist personal API token in:
+        <label
+          is="zotero-text-link"
+          href="https://todoist.com/app/settings/integrations/developer"
+          value="todoist.com/app/settings/integrations/developer"
+        />
+      </description>
+    </groupbox>
+
+    <groupbox>
+      <label>
+        <html:h2>Templates</html:h2>
+      </label>
+      <description>
+        Each template becomes one submenu item under "Send To Todoist".
+      </description>
+      <description>
+        Use Todoist quick-add smart syntax in "text" (for example: #Project, @label, tomorrow, p1).
+      </description>
+      <description>
+        Supported placeholders: {{title}}, {{first_creator}}, {{creators}}, {{year}}, {{date}},
+        {{doi}}, {{url}}, {{zotero_uri}}, {{zotero_select}}, {{item_type}}, {{key}}.
+      </description>
+      <html:textarea
+        id="ztb-templates"
+        style="width: 100%; min-height: 240px; box-sizing: border-box; font-family: monospace;"
+      />
+      <hbox align="center">
+        <button id="ztb-save" label="Save" />
+        <button id="ztb-reset" label="Reset to Defaults" />
+        <spacer flex="1" />
+        <label id="ztb-status" value="" />
+      </hbox>
+    </groupbox>
+  </vbox>
+</vbox>
