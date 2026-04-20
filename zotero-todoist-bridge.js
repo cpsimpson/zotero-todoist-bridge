@@ -98,13 +98,8 @@ ZoteroTodoistBridge = {
   },
 
   ensureDefaultTemplatePref() {
-    const current = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true) || "";
-    const templates = this.parseTemplateConfigs(current);
-    if (templates.length) {
-      const normalized = JSON.stringify(templates, null, 2);
-      if (current !== normalized) {
-        Zotero.Prefs.set(ZTB_PREF_TEMPLATES, normalized, true);
-      }
+    const current = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true);
+    if (typeof current === "string" && current.trim()) {
       return;
     }
     this.resetTemplatesToDefaults();
@@ -112,22 +107,43 @@ ZoteroTodoistBridge = {
 
   getTemplateConfigs() {
     const raw = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true) || "";
-    const templates = this.parseTemplateConfigs(raw);
-    if (templates.length) {
+    const { templates, error } = this.parseTemplateConfigs(raw);
+    if (!error) {
       return templates;
     }
-    this.log("Invalid templates config found, resetting to default examples");
-    this.resetTemplatesToDefaults();
+    this.log(
+      `Invalid templates config found (${error}). Using built-in defaults without modifying saved settings`
+    );
     return [...ZTB_DEFAULT_TEMPLATES];
   },
 
   parseTemplateConfigs(raw) {
+    if (!raw.trim()) {
+      return { templates: [...ZTB_DEFAULT_TEMPLATES], error: null };
+    }
+
     try {
       const parsed = JSON.parse(raw);
-      return this.validateTemplateConfigs(parsed);
+      const candidate = Array.isArray(parsed)
+        ? parsed
+        : (parsed && typeof parsed === "object" && Array.isArray(parsed.templates))
+          ? parsed.templates
+          : null;
+
+      if (!candidate) {
+        return {
+          templates: [],
+          error: "Template config must be a JSON array or an object with a templates array",
+        };
+      }
+
+      const templates = this.validateTemplateConfigs(candidate);
+      if (!templates.length) {
+        return { templates: [], error: "No valid templates found" };
+      }
+      return { templates, error: null };
     } catch (error) {
-      this.log(`Template parse failed: ${error}`);
-      return [];
+      return { templates: [], error: String(error) };
     }
   },
 

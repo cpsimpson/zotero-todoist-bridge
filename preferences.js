@@ -3,11 +3,11 @@ const ZTB_PREF_TEMPLATES = "extensions.zotero-todoist-bridge.templates";
 
 const ZTB_DEFAULT_TEMPLATES = [
   {
-    name: "Example: Reading Queue",
+    name: "Add to Reading Queue",
     text: "Read {{title}} {{url}} #Reading",
   },
   {
-    name: "Example: Review Tomorrow",
+    name: "Review Tomorrow",
     text: "Review {{title}} {{url}} tomorrow #Reading p2",
   },
 ];
@@ -28,27 +28,28 @@ var ZoteroTodoistBridgePrefs = {
 
   load() {
     this.tokenInput.value = Zotero.Prefs.get(ZTB_PREF_TOKEN, true) || "";
-    let rawTemplates = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true) || "";
-    let templates = this.parseTemplateConfigs(rawTemplates);
-    if (!templates.length) {
-      templates = [...ZTB_DEFAULT_TEMPLATES];
-      rawTemplates = JSON.stringify(templates, null, 2);
+    let rawTemplates = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true);
+    if (typeof rawTemplates !== "string" || !rawTemplates.trim()) {
+      rawTemplates = JSON.stringify(ZTB_DEFAULT_TEMPLATES, null, 2);
       Zotero.Prefs.set(ZTB_PREF_TEMPLATES, rawTemplates, true);
-    } else {
-      rawTemplates = JSON.stringify(templates, null, 2);
-      if (rawTemplates !== Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true)) {
-        Zotero.Prefs.set(ZTB_PREF_TEMPLATES, rawTemplates, true);
-      }
     }
     this.templatesInput.value = rawTemplates;
-    this.setStatus("");
+
+    const { error } = this.parseTemplateConfigs(rawTemplates);
+    if (error) {
+      this.setStatus(`Templates JSON has errors and was preserved: ${error}`, true);
+    } else {
+      this.setStatus("");
+    }
   },
 
   save() {
     try {
-      const parsed = JSON.parse(this.templatesInput.value || "[]");
-      const validated = this.validateTemplates(parsed);
-      const normalized = JSON.stringify(validated, null, 2);
+      const { templates, error } = this.parseTemplateConfigs(this.templatesInput.value || "");
+      if (error) {
+        throw new Error(error);
+      }
+      const normalized = JSON.stringify(templates, null, 2);
       Zotero.Prefs.set(ZTB_PREF_TOKEN, this.tokenInput.value.trim(), true);
       Zotero.Prefs.set(ZTB_PREF_TEMPLATES, normalized, true);
       this.templatesInput.value = normalized;
@@ -66,9 +67,6 @@ var ZoteroTodoistBridgePrefs = {
   },
 
   validateTemplates(candidate) {
-    if (!Array.isArray(candidate)) {
-      throw new Error("Template config must be a JSON array.");
-    }
     const templates = [];
     for (let i = 0; i < candidate.length; i++) {
       const template = candidate[i];
@@ -89,11 +87,32 @@ var ZoteroTodoistBridgePrefs = {
   },
 
   parseTemplateConfigs(raw) {
+    if (!raw.trim()) {
+      return { templates: [], error: "Template config must not be empty." };
+    }
     try {
       const parsed = JSON.parse(raw);
-      return this.validateTemplates(parsed);
+      const candidate = Array.isArray(parsed)
+        ? parsed
+        : (parsed && typeof parsed === "object" && Array.isArray(parsed.templates))
+          ? parsed.templates
+          : null;
+
+      if (!candidate) {
+        return {
+          templates: [],
+          error: "Template config must be a JSON array or an object with a templates array.",
+        };
+      }
+
+      const templates = this.validateTemplates(candidate);
+      if (!templates.length) {
+        return { templates: [], error: "At least one template is required." };
+      }
+
+      return { templates, error: null };
     } catch (error) {
-      return [];
+      return { templates: [], error: String(error.message || error) };
     }
   },
 
