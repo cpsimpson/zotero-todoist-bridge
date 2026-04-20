@@ -4,7 +4,7 @@ A Zotero plugin that adds a right-click submenu to send selected papers to Todoi
 
 ## Zotero Version
 
-Verified against Zotero 9 (current stable release as of April 2026).
+Compatible with Zotero 9 and Zotero 10 beta builds.
 
 ## What It Adds
 
