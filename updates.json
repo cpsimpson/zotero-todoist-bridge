@@ -3,8 +3,8 @@
     "zotero-todoist-bridge@cpsimpson.dev": {
       "updates": [
         {
-          "version": "0.1.5",
-          "update_link": "https://github.com/cpsimpson/zotero-todoist-bridge/releases/download/v0.1.5/zotero-todoist-bridge-0.1.5.xpi",
+          "version": "0.1.6",
+          "update_link": "https://github.com/cpsimpson/zotero-todoist-bridge/releases/download/v0.1.6/zotero-todoist-bridge-0.1.6.xpi",
           "applications": {
             "zotero": {
               "strict_min_version": "9.0",
