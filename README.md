@@ -6,6 +6,10 @@ A Zotero plugin that adds a right-click submenu to send selected papers to Todoi
 
 Compatible with Zotero 9 and Zotero 10 beta builds.
 
+Plugin updates are served from GitHub Releases via:
+
+- `https://github.com/cpsimpson/zotero-todoist-bridge/releases/latest/download/updates.json`
+
 ## What It Adds
 
 - Right-click an item in Zotero and use `Send To Todoist`
@@ -26,7 +30,7 @@ Example templates JSON:
 ```json
 [
   {
-    "name": "Reading Queue",
+    "name": "Add to Reading Queue",
     "text": "Read {{title}} {{url}} #Reading"
   },
   {
@@ -57,3 +61,13 @@ Example templates JSON:
 ```
 
 Then install the generated `.xpi` from `Tools -> Plugins` in Zotero.
+
+## Automated Releases
+
+On every merge/push to `main`, GitHub Actions:
+
+1. Builds the `.xpi`
+2. Generates a Zotero-compatible `updates.json` with SHA-256 hash
+3. Publishes a GitHub release tagged `v<manifest version>` with both files as assets (if the tag does not already exist)
+
+When you want a new release version, bump `"version"` in `manifest.json` before merging.
