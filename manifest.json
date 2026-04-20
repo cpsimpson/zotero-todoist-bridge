@@ -7,7 +7,7 @@
   "applications": {
     "zotero": {
       "id": "zotero-todoist-bridge@cpsimpson.dev",
-      "update_url": "https://raw.githubusercontent.com/cpsimpson/zotero-todoist-bridge/main/updates.json",
+      "update_url": "https://github.com/cpsimpson/zotero-todoist-bridge/releases/latest/download/updates.json",
       "strict_min_version": "9.0",
       "strict_max_version": "10.*"
     }
