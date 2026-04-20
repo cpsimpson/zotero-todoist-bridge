@@ -140,3 +140,7 @@ var ZoteroTodoistBridgePrefs = {
     this.statusLabel.style.color = isError ? "#cc3333" : "";
   },
 };
+
+if (typeof window !== "undefined") {
+  window.ZoteroTodoistBridgePrefs = ZoteroTodoistBridgePrefs;
+}
