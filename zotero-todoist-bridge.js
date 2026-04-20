@@ -6,11 +6,11 @@ const TODOIST_QUICK_ADD_URL = "https://api.todoist.com/api/v1/tasks/quick";
 
 const ZTB_DEFAULT_TEMPLATES = [
   {
-    name: "Reading Queue",
+    name: "Example: Reading Queue",
     text: "Read {{title}} {{url}} #Reading",
   },
   {
-    name: "Review Tomorrow",
+    name: "Example: Review Tomorrow",
     text: "Review {{title}} {{url}} tomorrow #Reading p2",
   },
 ];
@@ -98,29 +98,45 @@ ZoteroTodoistBridge = {
   },
 
   ensureDefaultTemplatePref() {
-    const current = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true);
-    if (typeof current === "string" && current.trim()) {
+    const current = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true) || "";
+    const templates = this.parseTemplateConfigs(current);
+    if (templates.length) {
+      const normalized = JSON.stringify(templates, null, 2);
+      if (current !== normalized) {
+        Zotero.Prefs.set(ZTB_PREF_TEMPLATES, normalized, true);
+      }
       return;
     }
+    this.resetTemplatesToDefaults();
+  },
+
+  getTemplateConfigs() {
+    const raw = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true) || "";
+    const templates = this.parseTemplateConfigs(raw);
+    if (templates.length) {
+      return templates;
+    }
+    this.log("Invalid templates config found, resetting to default examples");
+    this.resetTemplatesToDefaults();
+    return [...ZTB_DEFAULT_TEMPLATES];
+  },
+
+  parseTemplateConfigs(raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      return this.validateTemplateConfigs(parsed);
+    } catch (error) {
+      this.log(`Template parse failed: ${error}`);
+      return [];
+    }
+  },
+
+  resetTemplatesToDefaults() {
     Zotero.Prefs.set(
       ZTB_PREF_TEMPLATES,
       JSON.stringify(ZTB_DEFAULT_TEMPLATES, null, 2),
       true
     );
-  },
-
-  getTemplateConfigs() {
-    const raw = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true);
-    try {
-      const parsed = JSON.parse(raw);
-      const templates = this.validateTemplateConfigs(parsed);
-      if (templates.length) {
-        return templates;
-      }
-    } catch (error) {
-      this.log(`Template parse failed: ${error}`);
-    }
-    return ZTB_DEFAULT_TEMPLATES;
   },
 
   validateTemplateConfigs(candidate) {

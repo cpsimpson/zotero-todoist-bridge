@@ -3,11 +3,11 @@ const ZTB_PREF_TEMPLATES = "extensions.zotero-todoist-bridge.templates";
 
 const ZTB_DEFAULT_TEMPLATES = [
   {
-    name: "Reading Queue",
+    name: "Example: Reading Queue",
     text: "Read {{title}} {{url}} #Reading",
   },
   {
-    name: "Review Tomorrow",
+    name: "Example: Review Tomorrow",
     text: "Review {{title}} {{url}} tomorrow #Reading p2",
   },
 ];
@@ -29,9 +29,16 @@ var ZoteroTodoistBridgePrefs = {
   load() {
     this.tokenInput.value = Zotero.Prefs.get(ZTB_PREF_TOKEN, true) || "";
     let rawTemplates = Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true) || "";
-    if (!rawTemplates.trim()) {
-      rawTemplates = JSON.stringify(ZTB_DEFAULT_TEMPLATES, null, 2);
+    let templates = this.parseTemplateConfigs(rawTemplates);
+    if (!templates.length) {
+      templates = [...ZTB_DEFAULT_TEMPLATES];
+      rawTemplates = JSON.stringify(templates, null, 2);
       Zotero.Prefs.set(ZTB_PREF_TEMPLATES, rawTemplates, true);
+    } else {
+      rawTemplates = JSON.stringify(templates, null, 2);
+      if (rawTemplates !== Zotero.Prefs.get(ZTB_PREF_TEMPLATES, true)) {
+        Zotero.Prefs.set(ZTB_PREF_TEMPLATES, rawTemplates, true);
+      }
     }
     this.templatesInput.value = rawTemplates;
     this.setStatus("");
@@ -79,6 +86,15 @@ var ZoteroTodoistBridgePrefs = {
       templates.push({ name, text });
     }
     return templates;
+  },
+
+  parseTemplateConfigs(raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      return this.validateTemplates(parsed);
+    } catch (error) {
+      return [];
+    }
   },
 
   setStatus(message, isError) {
